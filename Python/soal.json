@@ -1,0 +1,12 @@
+[
+  {
+    "question": "Apa fungsi utama dari protokol TCP?",
+    "options": {
+      "A": "Mengatur layout halaman web",
+      "B": "Mengelola koneksi jaringan yang andal",
+      "C": "Mengirimkan email",
+      "D": "Menyediakan nama domain"
+    },
+    "correct_answer": "B"
+  }
+]

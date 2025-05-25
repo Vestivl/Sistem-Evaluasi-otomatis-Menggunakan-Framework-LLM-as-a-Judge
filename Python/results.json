@@ -1,0 +1,14 @@
+[
+  {
+    "question": "Apa fungsi utama dari protokol TCP?",
+    "options": {
+      "A": "Mengatur layout halaman web",
+      "B": "Mengelola koneksi jaringan yang andal",
+      "C": "Mengirimkan email",
+      "D": "Menyediakan nama domain"
+    },
+    "correct_answer": "B",
+    "model_answer": "B",
+    "evaluation": "Benar. \nProtokol TCP memiliki fungsi utama untuk memastikan pengiriman data yang handal dan berurutan antara perangkat dalam jaringan, sehingga jawaban B adalah pilihan yang tepat karena berkaitan dengan fungsi tersebut."
+  }
+]
