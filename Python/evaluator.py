@@ -1,11 +1,8 @@
 import json
 import requests
 import time
-import os
 
-# Masukkan API Key dari OpenRouter.ai
-API_KEY = "API KEY ANDA"
-
+API_KEY = "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"  # Ganti dengan API Key kamu
 MODEL_DEEPSEEK = "deepseek/deepseek-r1:free"
 MODEL_JUDGE = "meta-llama/llama-4-maverick"
 
@@ -15,26 +12,28 @@ headers = {
     "X-Title": "TA Evaluator"
 }
 
-def ask_openrouter(model, messages, max_tokens=1000):
+def ask_openrouter(model, messages, max_tokens=1000): 
     url = "https://openrouter.ai/api/v1/chat/completions"
     body = {
         "model": model,
         "messages": messages,
         "max_tokens": max_tokens
     }
-    response = requests.post(url, headers=headers, json=body)
-    result = response.json()
-
-    if "choices" in result:
-        return result["choices"][0]["message"]["content"].strip()
-    else:
-        print(f"[❌] Gagal dengan model {model}:")
-        print(result)
+    try:
+        response = requests.post(url, headers=headers, json=body)
+        result = response.json()
+        if "choices" in result:
+            return result["choices"][0]["message"]["content"].strip()
+        else:
+            print(f"[❌] Gagal model {model}: {result}")
+            return "ERROR"
+    except Exception as e:
+        print(f"[❌] Error API: {e}")
         return "ERROR"
 
 def get_answer_from_model(question_item):
     q_text = question_item["question"]
-    opts = "\n".join(question_item["options"])
+    opts = "\n".join([f"{k}. {v}" for k, v in question_item["options"].items()])
     prompt = f"""
 Berikut adalah soal pilihan ganda:
 
@@ -50,95 +49,129 @@ Berikan jawaban yang paling tepat (hanya huruf A, B, C, atau D).
 
 def evaluate_answer(question_item, model_answer):
     q_text = question_item["question"]
-    opts = "\n".join(question_item["options"])
-    correct = question_item["correct_answer"]
+    opts = "\n".join([f"{k}. {v}" for k, v in question_item["options"].items()])
 
-    prompt = f"""
+    if "correct_answer" in question_item:
+        correct = question_item["correct_answer"]
+        prompt = f"""
 Soal: {q_text}
 Pilihan:
 {opts}
 
 Jawaban model: {model_answer}
-Jawaban benar: {correct}
+Jawaban benar (kunci): {correct}
 
 Apakah jawaban model benar? Jelaskan secara singkat. Balas hanya:
 - Benar/Salah
 - Penjelasan 1-2 kalimat
 """
+        eval_type = "Training"
+    else:
+        prompt = f"""
+Soal: {q_text}
+Pilihan:
+{opts}
+
+Jawaban model: {model_answer}
+
+Tidak tersedia jawaban benar (kunci).
+Tolong nilai apakah jawaban model sudah tepat secara umum dan masuk akal.
+
+Balas hanya:
+- Benar/Salah
+- Penjelasan 1-2 kalimat
+"""
+        eval_type = "Testing"
+
     messages = [{"role": "user", "content": prompt}]
-    return ask_openrouter(MODEL_JUDGE, messages)
+    response = ask_openrouter(MODEL_JUDGE, messages)
 
-def load_existing_results(file_path):
-    if os.path.exists(file_path):
-        with open(file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    else:
-        return []
+    if response == "ERROR":
+        return "ERROR"
 
-def save_results(file_path, data):
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    lines = response.strip().splitlines()
+    label = "Tidak Jelas"
+    reason = ""
+    for line in lines:
+        if "Benar" in line:
+            label = "Benar"
+        elif "Salah" in line:
+            label = "Salah"
+        else:
+            reason += line.strip() + " "
 
-def show_statistics(results):
-    total = 0
-    benar = 0
-    gagal = 0
+    return {
+        "label": label,
+        "reason": reason.strip(),
+        "type": eval_type
+    }
 
-    for item in results:
-        evaluation = item.get("evaluation", "")
-        if evaluation == "ERROR":
-            gagal += 1
-            continue
-        if "Benar" in evaluation:
-            benar += 1
-        total += 1
-
-    print("\n📊 Statistik Evaluasi:")
-    print(f"📚 Total soal dievaluasi: {total}")
-    print(f"✅ Jawaban benar: {benar}")
-    print(f"❌ Jawaban salah: {total - benar}")
-    print(f"⚠️ Soal gagal dievaluasi: {gagal}")
-
-    if total > 0:
-        akurasi = (benar / total) * 100
-        print(f"🎯 Akurasi: {akurasi:.2f}%")
-    else:
-        print("⚠️ Tidak ada soal yang berhasil dievaluasi.")
-
-def main():
-    with open("soal.json", "r", encoding="utf-8") as f:
+def process_file(json_path, result_path):
+    with open(json_path, "r", encoding="utf-8") as f:
         questions = json.load(f)
 
-    result_file = "results.json"
-    existing_results = load_existing_results(result_file)
-    existing_questions = {item["question"]: item for item in existing_results}
-
+    results = []
     for idx, item in enumerate(questions, 1):
-        if item["question"] in existing_questions:
-            print(f"[{idx}] ❎ Lewatkan, sudah ada: {item['question']}")
-            continue
-
-        print(f"[{idx}] ▶ Memproses soal baru: {item['question']}")
+        print(f"[{idx}] ▶ Memproses soal: {item['question']}")
         model_answer = get_answer_from_model(item)
-        print(f"Jawaban model: {model_answer}")
         item["model_answer"] = model_answer
 
         if model_answer == "ERROR":
-            print("❌ Gagal menjawab soal.\n")
             item["evaluation"] = "ERROR"
-            existing_results.append(item)
+            results.append(item)
             continue
 
         evaluation = evaluate_answer(item, model_answer)
-        print(f"Hasil evaluasi: {evaluation}")
         item["evaluation"] = evaluation
-        print("-----\n")
-        existing_results.append(item)
-        time.sleep(1)
+        results.append(item)
+        time.sleep(1.5)
 
-    save_results(result_file, existing_results)
-    print(f"\n✅ Selesai. Hasil disimpan di {result_file}")
-    show_statistics(existing_results)
+    with open(result_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+
+    return results
+
+def show_statistics(label, results):
+    total = len(results)
+    benar, salah, gagal = 0, 0, 0
+    for item in results:
+        eval_result = item.get("evaluation", {})
+        if eval_result == "ERROR":
+            gagal += 1
+            continue
+        label_eval = eval_result.get("label", "")
+        if label_eval == "Benar":
+            benar += 1
+        elif label_eval == "Salah":
+            salah += 1
+
+    def akurasi(b, s):
+        return (b / (b + s)) * 100 if (b + s) > 0 else 0
+
+    print(f"\n📊 Statistik {label}:")
+    print(f"- Benar: {benar}")
+    print(f"- Salah: {salah}")
+    print(f"- Gagal: {gagal}")
+    print(f"- Akurasi: {akurasi(benar, salah):.2f}%")
+    return benar, salah
+
+def main():
+    print("🔁 Memproses Training Set...")
+    training_results = process_file("training.json", "training_results.json")
+    benar_tr, salah_tr = show_statistics("Training", training_results)
+
+    print("\n🔁 Memproses Testing Set...")
+    testing_results = process_file("testing.json", "testing_results.json")
+    benar_te, salah_te = show_statistics("Testing", testing_results)
+
+    total_benar = benar_tr + benar_te
+    total_salah = salah_tr + salah_te
+    total_akurasi = (total_benar / (total_benar + total_salah)) * 100 if (total_benar + total_salah) > 0 else 0
+
+    print(f"\n📌 Total Keseluruhan:")
+    print(f"- Benar: {total_benar}")
+    print(f"- Salah: {total_salah}")
+    print(f"- Akurasi Total: {total_akurasi:.2f}%")
 
 if __name__ == "__main__":
     main()

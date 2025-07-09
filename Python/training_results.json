@@ -1,0 +1,34 @@
+[
+  {
+    "question": "Apa fungsi utama dari protokol TCP dalam jaringan komputer?",
+    "options": {
+      "A": "Mengatur alokasi alamat IP",
+      "B": "Menjamin pengiriman data secara andal",
+      "C": "Mengatur routing antar jaringan",
+      "D": "Mengelola nama domain"
+    },
+    "correct_answer": "B",
+    "model_answer": "B. Menjamin pengiriman data secara andal\n\n**Penjelasan:**  \nTCP (Transmission Control Protocol) bertanggung jawab untuk menjamin pengiriman data secara andal dan terurut antara perangkat dalam jaringan. Protokol ini menggunakan mekanisme seperti *acknowledgment*, *retransmission* paket yang hilang, dan pengontrolan aliran untuk memastikan data sampai utuh ke tujuan. Pilihan lain tidak tepat karena:\n- **A:** Alokasi alamat IP ditangani oleh DHCP (Dynamic Host Configuration Protocol).\n- **C:** Routing antar jaringan dikelola oleh protokol seperti BGP atau OSPF (lapisan jaringan).\n- **D:** Pengelolaan nama domain terkait dengan DNS (Domain Name System).",
+    "evaluation": {
+      "label": "Benar",
+      "reason": "Jawaban model \"B. Menjamin pengiriman data secara andal\" adalah benar karena TCP memang berfungsi untuk memastikan data dikirimkan dengan andal dan terurut melalui jaringan.",
+      "type": "Training"
+    }
+  },
+  {
+    "question": "Praktik manajemen arsitektur bertujuan untuk?",
+    "options": {
+      "A": "Meningkatkan sistem keamanan organisasi",
+      "B": "Mengembangkan perangkat lunak baru",
+      "C": "Memberikan pemahaman tentang elemen organisasi dan bagaimana saling terkait",
+      "D": "Mengelola anggaran organisasi"
+    },
+    "correct_answer": "C",
+    "model_answer": "C",
+    "evaluation": {
+      "label": "Benar",
+      "reason": "Praktik manajemen arsitektur bertujuan memberikan pemahaman tentang elemen organisasi dan bagaimana mereka saling terkait, sehingga pilihan C adalah jawaban yang tepat.",
+      "type": "Training"
+    }
+  }
+]

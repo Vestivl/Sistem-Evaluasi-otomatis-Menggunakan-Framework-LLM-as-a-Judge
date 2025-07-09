@@ -1,0 +1,22 @@
+[
+{
+  "question": "Apa fungsi utama dari protokol TCP dalam jaringan komputer?",
+  "options": {
+    "A": "Mengatur alokasi alamat IP",
+    "B": "Menjamin pengiriman data secara andal",
+    "C": "Mengatur routing antar jaringan",
+    "D": "Mengelola nama domain"
+  },
+  "correct_answer": "B"
+},
+{
+  "question": "Praktik manajemen arsitektur bertujuan untuk?",
+  "options": {
+    "A": "Meningkatkan sistem keamanan organisasi",
+    "B": "Mengembangkan perangkat lunak baru",
+    "C": "Memberikan pemahaman tentang elemen organisasi dan bagaimana saling terkait",
+    "D": "Mengelola anggaran organisasi"
+  },
+  "correct_answer": "C"
+}
+]
