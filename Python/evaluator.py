@@ -2,7 +2,7 @@ import json
 import requests
 import time
 
-API_KEY = "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"  # Ganti dengan API Key kamu
+API_KEY = "YOUR API"  # Ganti dengan API Key kamu
 MODEL_DEEPSEEK = "deepseek/deepseek-r1:free"
 MODEL_JUDGE = "meta-llama/llama-4-maverick"
 
